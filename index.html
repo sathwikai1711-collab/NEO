@@ -971,13 +971,29 @@ input,textarea{font-family:var(--font-body)}
   <button class="btn-hero btn-hero-primary" onclick="showPage('landing')">Take me home</button>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script>
+// ===== FIREBASE INIT =====
+const firebaseConfig = {
+  apiKey: "AIzaSyBvewu_tvkCkIWuKcbPaqzDl9LkJRUVORg",
+  authDomain: "neos-cf4f1.firebaseapp.com",
+  projectId: "neos-cf4f1",
+  storageBucket: "neos-cf4f1.firebasestorage.app",
+  messagingSenderId: "1021422287779",
+  appId: "1:1021422287779:web:fa88729d41c6fd5f75f816",
+  measurementId: "G-ZPLB8JCTT1"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+
 // ===== ALL API KEYS =====
 const GEMINI_KEY = 'AIzaSyDSA6Ph_PvTFuRH_-gcizC45CwpLFQsKNM';
 const GROQ_KEY = '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';
 const MISTRAL_KEY = 'EIMpo49HCsPEXUAG68Qs3YXwO3dlZTgv';
-const SUPABASE_URL = 'https://hszsqqwkfcuzbcxmbfvb.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhzenNxcXdrZmN1emJjeG1iZnZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4NDMyMDgsImV4cCI6MjA5MzQxOTIwOH0.m-L9IgcK8K0XlfDCcQ-grdsgyTFH-qEVJ9bIym0GbYk';
 
 // ===== STATE =====
 let currentUser = {name:'Guest',email:'',initials:'G',isGuest:true,id:null};
@@ -990,46 +1006,29 @@ let chatHistory = [];
 let currentSessionId = Date.now().toString();
 let recognition = null;
 
-// ===== SUPABASE HELPERS =====
-async function sbGet(table, filters=''){
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filters}&order=created_at.asc`, {
-    headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+SUPABASE_ANON}
-  });
-  return res.json();
+// ===== FIREBASE HELPERS (compat SDK) =====
+async function fbAdd(col, data){
+  return await db.collection(col).add({...data, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
 }
-async function sbInsert(table, data){
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
-    method:'POST',
-    headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+SUPABASE_ANON,'Content-Type':'application/json','Prefer':'return=representation'},
-    body: JSON.stringify(data)
-  });
-  return res.json();
+async function fbGet(col, queryFn){
+  let ref = db.collection(col);
+  if(queryFn) ref = queryFn(ref);
+  const snap = await ref.get();
+  return snap.docs.map(d => ({id:d.id, ...d.data()}));
 }
-async function sbUpdate(table, filter, data){
-  await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filter}`, {
-    method:'PATCH',
-    headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+SUPABASE_ANON,'Content-Type':'application/json'},
-    body: JSON.stringify(data)
-  });
+async function fbUpdate(col, docId, data){
+  await db.collection(col).doc(docId).update(data);
 }
-async function sbDelete(table, filter){
-  await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filter}`, {
-    method:'DELETE',
-    headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+SUPABASE_ANON}
-  });
+async function fbDelete(col, docId){
+  await db.collection(col).doc(docId).delete();
 }
 
-// ===== INIT SUPABASE TABLES =====
-async function initDB(){
-  // Create tables via RPC if not exist - we use insert with upsert to handle gracefully
-  // Tables needed: users, messages, sessions, feed_posts, groups, group_messages
-  try {
-    // Test connection
-    await sbGet('users','limit=1');
-  } catch(e) {
-    console.log('DB init:', e);
+// ===== AUTH STATE =====
+auth.onAuthStateChanged(user => {
+  if(user && !currentUser.isGuest){
+    currentUser.uid = user.uid;
   }
-}
+});
 
 // ===== AI API CALLS =====
 const NEO_SYSTEM = `You are NEO, a friendly, smart, and helpful AI personal assistant created by Sathwik. You are casual, warm, and concise. You help with anything — web info, emails, coding, reminders, answering questions, creative writing, math, and more. Use emojis occasionally. Be friendly and supportive. If someone seems sad or troubled, be kind and caring. Keep responses clear and helpful.`;
@@ -1095,51 +1094,56 @@ function renderText(text){
     .replace(/\n/g,'<br>');
 }
 
-// ===== SAVE MESSAGE TO SUPABASE =====
+// ===== SAVE MESSAGE TO FIREBASE =====
 async function saveMessage(role, content, ai){
   if(currentUser.isGuest) return;
   try {
-    await sbInsert('messages', {
-      user_id: currentUser.id||currentUser.email,
-      user_name: currentUser.name,
-      session_id: currentSessionId,
+    await fbAdd('messages', {
+      userId: currentUser.uid||currentUser.email,
+      userName: currentUser.name,
+      sessionId: currentSessionId,
       role: role,
       content: content,
-      ai_model: ai||currentAI,
-      created_at: new Date().toISOString()
+      aiModel: ai||currentAI
     });
   } catch(e){ console.log('Save msg error:',e); }
 }
 
-// ===== SAVE USER TO SUPABASE =====
+// ===== SAVE USER TO FIREBASE =====
 async function saveUser(){
   if(currentUser.isGuest) return;
   try {
-    await sbInsert('users', {
+    await fbAdd('users', {
+      uid: currentUser.uid||currentUser.id,
       email: currentUser.email,
       name: currentUser.name,
-      is_guest: false,
-      last_seen: new Date().toISOString(),
-      created_at: new Date().toISOString()
+      isGuest: false,
+      lastSeen: new Date().toISOString()
     });
   } catch(e){ console.log('Save user error:',e); }
 }
 
-// ===== LOAD CHAT HISTORY FROM SUPABASE =====
+// ===== LOAD CHAT HISTORY FROM FIREBASE =====
 async function loadChatHistory(){
   if(currentUser.isGuest) return;
   try {
-    const msgs = await sbGet('messages', `user_id=eq.${currentUser.email}&session_id=eq.${currentSessionId}&limit=50`);
-    if(Array.isArray(msgs) && msgs.length > 0){
+    const snap = await db.collection('messages')
+      .where('userId','==',(currentUser.uid||currentUser.email))
+      .where('sessionId','==',currentSessionId)
+      .orderBy('createdAt','asc')
+      .limit(50)
+      .get();
+    const msgs = snap.docs.map(d=>({id:d.id,...d.data()}));
+    if(msgs.length > 0){
       const container = document.getElementById('chat-messages');
-      // Keep welcome message, add history
       msgs.forEach(m => {
         const div = document.createElement('div');
         div.className = 'msg ' + (m.role==='user'?'user':'neo');
+        const t = m.createdAt?.toDate ? m.createdAt.toDate().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : getTime();
         if(m.role==='user'){
-          div.innerHTML = `<div class="msg-bubble">${escHtml(m.content)}</div><div class="msg-time">${new Date(m.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>`;
+          div.innerHTML = `<div class="msg-bubble">${escHtml(m.content)}</div><div class="msg-time">${t}</div>`;
         } else {
-          div.innerHTML = `<div class="msg-header"><span class="neo-badge">NEO</span><span class="ai-source-badge">${m.ai_model||'Gemini'}</span></div><div class="msg-bubble">${renderText(m.content)}</div><div class="msg-time">${new Date(m.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>`;
+          div.innerHTML = `<div class="msg-header"><span class="neo-badge">NEO</span><span class="ai-source-badge">${m.aiModel||'Gemini'}</span></div><div class="msg-bubble">${renderText(m.content)}</div><div class="msg-time">${t}</div>`;
         }
         container.appendChild(div);
       });
@@ -1149,17 +1153,19 @@ async function loadChatHistory(){
   } catch(e){ console.log('Load history error:',e); }
 }
 
-// ===== LOAD FEED FROM SUPABASE =====
+// ===== LOAD FEED FROM FIREBASE =====
 async function loadFeed(){
   try {
-    const posts = await sbGet('feed_posts','limit=20&order=created_at.desc');
-    if(Array.isArray(posts) && posts.length > 0){
+    const snap = await db.collection('feed_posts').orderBy('createdAt','desc').limit(20).get();
+    const posts = snap.docs.map(d=>({id:d.id,...d.data()}));
+    if(posts.length > 0){
       const container = document.getElementById('feed-posts');
       container.innerHTML = '';
       posts.forEach(p => {
         const div = document.createElement('div');
         div.className = 'feed-post';
-        div.innerHTML = `<div class="feed-post-header"><div class="feed-post-avatar" style="background:var(--mint)">${p.user_name?p.user_name[0].toUpperCase():'U'}</div><div><div class="feed-post-name">${escHtml(p.user_name||'User')}</div><div class="feed-post-time">${new Date(p.created_at).toLocaleDateString()}</div></div></div>
+        const t = p.createdAt?.toDate ? p.createdAt.toDate().toLocaleDateString() : 'Just now';
+        div.innerHTML = `<div class="feed-post-header"><div class="feed-post-avatar" style="background:var(--mint)">${p.userName?p.userName[0].toUpperCase():'U'}</div><div><div class="feed-post-name">${escHtml(p.userName||'User')}</div><div class="feed-post-time">${t}</div></div></div>
         <div class="feed-post-content">${escHtml(p.content)}</div>
         <div class="feed-post-actions">
           <button class="feed-action" onclick="likePost(this,'${p.id}')"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg> ${p.likes||0}</button>
@@ -1178,7 +1184,7 @@ document.getElementById('welcome-time').textContent = getTime();
 setTimeout(()=>{
   document.getElementById('splash').classList.add('gone');
   document.getElementById('landing').style.opacity='1';
-  initDB();
+  showToast('NEO connected to Firebase ☁️');
 },2400);
 
 // ===== PAGE ROUTING =====
@@ -1221,34 +1227,63 @@ function switchAuthTab(tab){
   document.getElementById('tab-login').classList.toggle('active',tab==='login');
   document.getElementById('tab-signup').classList.toggle('active',tab==='signup');
 }
+
 async function doLogin(){
   const email = document.getElementById('login-email').value.trim();
   const pass = document.getElementById('login-pass').value;
   if(!email||!pass){showToast('Please enter email and password');return;}
-  const name = email.split('@')[0];
-  currentUser = {name:name,email:email,initials:name[0].toUpperCase(),isGuest:false,id:email};
-  await saveUser();
-  enterApp();
+  try {
+    const cred = await auth.signInWithEmailAndPassword(email, pass);
+    const name = email.split('@')[0];
+    currentUser = {name:name, email:email, initials:name[0].toUpperCase(), isGuest:false, id:cred.user.uid, uid:cred.user.uid};
+    await saveUser();
+    showToast('Logged in! ✅');
+    enterApp();
+  } catch(e){
+    if(e.code==='auth/user-not-found'||e.code==='auth/invalid-credential') showToast('Wrong email or password!');
+    else showToast('Login error: '+e.message);
+  }
 }
+
 async function doSignup(){
   const name = document.getElementById('signup-name').value.trim()||'User';
   const email = document.getElementById('signup-email').value.trim();
+  const pass = document.getElementById('signup-pass')?.value || 'neo'+Date.now();
   if(!name||!email){showToast('Please fill all fields');return;}
-  currentUser = {name:name,email:email,initials:name[0].toUpperCase(),isGuest:false,id:email};
-  await saveUser();
-  enterApp();
+  try {
+    const cred = await auth.createUserWithEmailAndPassword(email, pass);
+    currentUser = {name:name, email:email, initials:name[0].toUpperCase(), isGuest:false, id:cred.user.uid, uid:cred.user.uid};
+    await saveUser();
+    showToast('Account created! Welcome to NEO 🎉');
+    enterApp();
+  } catch(e){
+    if(e.code==='auth/email-already-in-use') showToast('Email already used — try logging in!');
+    else showToast('Signup error: '+e.message);
+  }
 }
-function doGoogleLogin(){
-  currentUser = {name:'Sathwik',email:'sathwik@gmail.com',initials:'S',isGuest:false,id:'sathwik@gmail.com'};
-  showToast('Signed in with Google! ✅');
-  setTimeout(()=>{ saveUser(); enterApp(); },600);
+
+async function doGoogleLogin(){
+  try {
+    const cred = await auth.signInWithPopup(googleProvider);
+    const user = cred.user;
+    const name = user.displayName||user.email.split('@')[0];
+    currentUser = {name:name, email:user.email, initials:name[0].toUpperCase(), isGuest:false, id:user.uid, uid:user.uid};
+    await saveUser();
+    showToast('Signed in with Google! ✅');
+    enterApp();
+  } catch(e){
+    showToast('Google login failed. Try email login instead!');
+  }
 }
+
 function doGuestLogin(){
-  currentUser = {name:'Guest',email:'guest_'+Date.now(),initials:'G',isGuest:true,id:null};
+  currentUser = {name:'Guest', email:'guest_'+Date.now(), initials:'G', isGuest:true, id:null, uid:null};
   enterApp();
 }
-function doLogout(){
-  currentUser = {name:'Guest',email:'',initials:'G',isGuest:true,id:null};
+
+async function doLogout(){
+  try { await auth.signOut(); } catch(e){}
+  currentUser = {name:'Guest',email:'',initials:'G',isGuest:true,id:null,uid:null};
   showPage('landing');
   showToast('Logged out of NEO');
 }
@@ -1298,26 +1333,28 @@ function doAdminLogin(){
 }
 async function loadAdminData(){
   try {
-    const users = await sbGet('users','limit=100');
-    const msgs = await sbGet('messages','limit=1000');
-    if(Array.isArray(users)){
-      document.querySelector('.admin-stat-num').textContent = users.length||'0';
+    const uSnap = await db.collection('users').orderBy('createdAt','desc').limit(100).get();
+    const mSnap = await db.collection('messages').orderBy('createdAt','desc').limit(1000).get();
+    const users = uSnap.docs.map(d=>({id:d.id,...d.data()}));
+    const msgs = mSnap.docs.map(d=>({id:d.id,...d.data()}));
+    document.querySelector('.admin-stat-num').textContent = users.length||'0';
+    document.querySelectorAll('.admin-stat-num')[2].textContent = msgs.length||'0';
+    const tbody = document.querySelector('.admin-table tbody');
+    if(tbody && users.length > 0){
+      const seen = new Set();
+      const unique = users.filter(u => { if(seen.has(u.email)) return false; seen.add(u.email); return true; });
+      tbody.innerHTML = unique.slice(0,10).map(u=>`
+        <tr><td>${escHtml(u.name||'Unknown')}</td><td><span class="user-status-dot dot-offline"></span>Offline</td><td>Gemini</td><td>${msgs.filter(m=>m.userId===u.uid||m.userId===u.email).length}</td><td><button class="ban-btn" onclick="banUser('${u.id}')">Ban</button></td></tr>
+      `).join('');
     }
-    if(Array.isArray(msgs)){
-      document.querySelectorAll('.admin-stat-num')[2].textContent = msgs.length||'0';
-      // Update table
-      const tbody = document.querySelector('.admin-table tbody');
-      if(tbody && Array.isArray(users) && users.length>0){
-        tbody.innerHTML = users.slice(0,10).map(u=>`
-          <tr><td>${escHtml(u.name||'Unknown')}</td><td><span class="user-status-dot dot-offline"></span>Offline</td><td>Gemini</td><td>${msgs.filter(m=>m.user_id===u.email).length}</td><td><button class="ban-btn" onclick="banUser('${u.email}')">Ban</button></td></tr>
-        `).join('');
-      }
-    }
-  } catch(e){ console.log('Admin data error:',e); }
+  } catch(e){ console.log('Admin data error:',e); showToast('Admin: Firebase loading...'); }
 }
-async function banUser(email){
-  await sbUpdate('users','email=eq.'+email,{banned:true});
-  showToast('User banned: '+email);
+async function banUser(docId){
+  try {
+    await db.collection('users').doc(docId).update({banned:true});
+    showToast('User banned ✅');
+    loadAdminData();
+  } catch(e){ showToast('Could not ban user'); }
 }
 
 // ===== APP NAVIGATION =====
@@ -1585,8 +1622,8 @@ async function sendGroupMsg(){
   div.innerHTML=`<div class="group-msg-avatar" style="background:var(--mint);color:white">${currentUser.initials}</div><div class="group-msg-body" style="align-items:flex-end;display:flex;flex-direction:column"><div class="group-msg-name" style="text-align:right">You</div><div class="group-msg-bubble">${escHtml(text)}</div><div class="group-msg-time">${getTime()}</div></div>`;
   msgs.appendChild(div);input.value='';msgs.scrollTop=msgs.scrollHeight;
 
-  // Save group message to Supabase
-  try { await sbInsert('group_messages',{user_name:currentUser.name,content:text,group:document.getElementById('group-name').textContent,created_at:new Date().toISOString()}); } catch(e){}
+  // Save group message to Firebase
+  try { await fbAdd('group_messages',{userName:currentUser.name, content:text, group:document.getElementById('group-name').textContent}); } catch(e){}
 
   if(text.toLowerCase().includes('@neo')){
     const question=text.replace(/@neo/gi,'').trim();
@@ -1609,18 +1646,13 @@ async function postFeed(){
   const text=input.value.trim();
   if(!text){showToast('Write something first!');return;}
   try {
-    await sbInsert('feed_posts',{user_name:currentUser.name,user_email:currentUser.email,content:text,likes:0,created_at:new Date().toISOString()});
+    await fbAdd('feed_posts', {userName:currentUser.name, userEmail:currentUser.email, content:text, likes:0});
     showToast('Posted! 🎉');
     input.value='';
     loadFeed();
   } catch(e){
-    // Fallback: add locally
-    const posts=document.getElementById('feed-posts');
-    const div=document.createElement('div');
-    div.className='feed-post';
-    div.innerHTML=`<div class="feed-post-header"><div class="feed-post-avatar" style="background:var(--mint)">${currentUser.initials}</div><div><div class="feed-post-name">${currentUser.name}</div><div class="feed-post-time">Just now</div></div></div><div class="feed-post-content">${escHtml(text)}</div><div class="feed-post-actions"><button class="feed-action" onclick="likePost(this,null)"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg> 0</button><button class="report-btn" onclick="showToast('Reported!')">Report</button></div>`;
-    posts.insertBefore(div,posts.firstChild);
-    input.value='';showToast('Posted! 🎉');
+    showToast('Could not post — check internet!');
+    console.log('Post error:',e);
   }
 }
 
@@ -1631,7 +1663,7 @@ async function likePost(btn,postId){
   const svg=btn.querySelector('svg');btn.innerHTML='';btn.appendChild(svg);
   btn.appendChild(document.createTextNode(' '+(liked?count+1:Math.max(0,count-1))));
   btn.className='feed-action'+(liked?' liked':'');
-  if(postId){ try{ await sbUpdate('feed_posts','id=eq.'+postId,{likes:liked?count+1:count-1}); }catch(e){} }
+  if(postId){ try{ await fbUpdate('feed_posts', postId, {likes: liked?count+1:Math.max(0,count-1)}); }catch(e){} }
 }
 
 // ===== SHARE/EXPORT =====
