@@ -81,7 +81,7 @@ input,textarea{font-family:var(--font-body)}
 .land-footer span{color:var(--mint-dark);font-weight:500}
 
 /* ===== AUTH PAGE ===== */
-#auth{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--grey-light)}
+#auth{min-height:100vh;display:none;align-items:center;justify-content:center;background:var(--grey-light)}
 .auth-card{background:var(--white);border:0.5px solid var(--grey-border);border-radius:20px;padding:40px;width:100%;max-width:420px;box-shadow:0 4px 40px rgba(0,0,0,0.06)}
 .auth-logo{display:flex;flex-direction:column;align-items:center;margin-bottom:28px}
 .auth-orb{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#3ecf8e,#059669);display:flex;align-items:center;justify-content:center;margin-bottom:10px;animation:splashPulse 2s infinite}
@@ -512,7 +512,6 @@ input,textarea{font-family:var(--font-body)}
 
 <!-- ===== AUTH PAGE ===== -->
 <div id="auth" class="page" style="display:none">
-  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--grey-light)">
     <div class="auth-card">
       <div class="auth-logo">
         <div class="auth-orb"><span>N</span></div>
@@ -574,7 +573,6 @@ input,textarea{font-family:var(--font-body)}
         <button style="background:none;border:none;font-size:13px;color:var(--grey);cursor:pointer" onclick="showPage('landing')">← Back to home</button>
       </div>
     </div>
-  </div>
 </div>
 
 <!-- ===== MAIN APP ===== -->
@@ -1185,26 +1183,34 @@ setTimeout(()=>{
 
 // ===== PAGE ROUTING =====
 function showPage(pageId, extra){
-  document.querySelectorAll('.page').forEach(p=>{p.style.display='none';p.classList.remove('active');});
-  const map = {'landing':'landing','auth':'auth','main-app':'main-app','admin':'admin-page','404':'not-found-page'};
-  const targetId = map[pageId]||pageId;
-  const page = document.getElementById(targetId);
-  if(page){
-    if(pageId==='main-app'){
-      page.style.display='flex';
-      page.style.flexDirection='column';
-      page.style.height='100vh';
-      page.style.overflow='hidden';
-    } else if(pageId==='landing'){
-      page.style.display='flex';
-      page.style.flexDirection='column';
-    } else {
-      page.style.display='block';
-    }
-    page.classList.add('active');
-  }
-  if(pageId==='auth'&&extra) switchAuthTab(extra);
+  // Hide every page completely
+  ['landing','auth','main-app','admin-page','not-found-page'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){ el.style.display='none'; el.style.opacity='1'; }
+  });
+
   if(pageId==='auth'&&extra==='guest'){ doGuestLogin(); return; }
+
+  if(pageId==='landing'){
+    const el=document.getElementById('landing');
+    el.style.display='flex'; el.style.flexDirection='column';
+  } else if(pageId==='auth'){
+    const el=document.getElementById('auth');
+    el.style.display='flex'; el.style.flexDirection='column';
+    el.style.minHeight='100vh'; el.style.alignItems='center'; el.style.justifyContent='center';
+    el.style.background='var(--grey-light)';
+    if(extra) switchAuthTab(extra);
+  } else if(pageId==='main-app'){
+    const el=document.getElementById('main-app');
+    el.style.display='flex'; el.style.flexDirection='column';
+    el.style.height='100vh'; el.style.overflow='hidden';
+  } else if(pageId==='admin'){
+    const el=document.getElementById('admin-page');
+    if(el){ el.style.display='flex'; el.style.flexDirection='column'; el.style.minHeight='100vh'; }
+  } else {
+    const el=document.getElementById('not-found-page');
+    if(el){ el.style.display='flex'; el.style.flexDirection='column'; el.style.minHeight='100vh'; el.style.alignItems='center'; el.style.justifyContent='center'; }
+  }
   window.scrollTo(0,0);
 }
 
