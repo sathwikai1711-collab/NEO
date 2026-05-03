@@ -665,9 +665,14 @@ input,textarea{font-family:var(--font-body)}
           </div>
           <div class="input-row">
             <div class="input-wrap">
-              <button class="input-icon-btn" title="Attach file" onclick="showToast('File upload — connect Firebase to enable!')">
+              <button class="input-icon-btn" title="Attach file" onclick="document.getElementById('file-input').click()">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
               </button>
+              <input type="file" id="file-input" style="display:none" accept="image/*,.pdf,.txt,.doc,.docx" onchange="handleFileUpload(event)">
+              <div id="file-preview" style="display:none;align-items:center;gap:6px;background:var(--mint-light);border-radius:6px;padding:4px 8px;font-size:12px;color:var(--mint-dark);max-width:160px">
+                <span id="file-preview-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+                <button onclick="clearFile()" style="background:none;border:none;color:var(--mint-dark);cursor:pointer;font-size:14px;line-height:1">×</button>
+              </div>
               <textarea id="msg-input" rows="1" placeholder="Ask NEO anything..." onkeydown="handleMsgKey(event)" oninput="autoResize(this)"></textarea>
             </div>
             <button class="send-btn" onclick="sendChatMsg()">
@@ -991,7 +996,7 @@ const auth = firebase.auth();
 const googleProvider = new firebase.auth.GoogleAuthProvider();
 
 // ===== ALL API KEYS =====
-const GEMINI_KEY = 'AIzaSyDSA6Ph_PvTFuRH_-gcizC45CwpLFQsKNM';
+const GEMINI_KEY = 'AIzaSyCXEnMNcpA-xvTix1n915l8cISKj1Xf7Vg';
 const GROQ_KEY = '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';
 const MISTRAL_KEY = 'EIMpo49HCsPEXUAG68Qs3YXwO3dlZTgv';
 
@@ -1414,7 +1419,69 @@ function loadSession(el,name){
   showToast('Loaded: '+name);
 }
 
-// ===== CHAT =====
+// ===== FILE UPLOAD (no Firebase Storage needed — reads locally) =====
+let attachedFile = null; // {name, type, base64, text}
+
+function handleFileUpload(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const maxMB = 10;
+  if(file.size > maxMB * 1024 * 1024){ showToast('File too large! Max 10MB.'); return; }
+
+  const preview = document.getElementById('file-preview');
+  document.getElementById('file-preview-name').textContent = '📎 ' + file.name;
+  preview.style.display = 'flex';
+
+  const reader = new FileReader();
+
+  if(file.type.startsWith('image/')){
+    reader.onload = e => {
+      const base64 = e.target.result.split(',')[1];
+      attachedFile = {name: file.name, type: file.type, base64: base64, isImage: true};
+      showToast('Image attached! Ask NEO about it 🖼️');
+    };
+    reader.readAsDataURL(file);
+  } else {
+    // Text-based: PDF, TXT, DOCX etc — read as text
+    reader.onload = e => {
+      attachedFile = {name: file.name, type: file.type, text: e.target.result, isImage: false};
+      showToast('File attached! Ask NEO about it 📄');
+    };
+    reader.readAsText(file);
+  }
+  event.target.value = ''; // reset input
+}
+
+function clearFile(){
+  attachedFile = null;
+  document.getElementById('file-preview').style.display = 'none';
+  document.getElementById('file-preview-name').textContent = '';
+}
+
+async function callGeminiWithFile(prompt, file){
+  try {
+    let contents;
+    if(file.isImage){
+      contents = [{parts:[
+        {text: `${NEO_SYSTEM}\n\nUser uploaded an image named "${file.name}". ${prompt}`},
+        {inline_data: {mime_type: file.type, data: file.base64}}
+      ]}];
+    } else {
+      const fileContext = `File name: ${file.name}\n\nFile contents:\n${file.text.substring(0,8000)}`;
+      contents = [{parts:[{text: `${NEO_SYSTEM}\n\nUser uploaded a file. ${fileContext}\n\nUser's question: ${prompt}`}]}];
+    }
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({contents, generationConfig:{maxOutputTokens:1000,temperature:0.8}})
+    });
+    const data = await res.json();
+    if(data.candidates&&data.candidates[0]) return data.candidates[0].content.parts[0].text;
+    return 'Sorry, could not read the file. Try again!';
+  } catch(e){ return 'Error reading file: '+e.message; }
+}
+
+
 function setAI(ai,btn){
   currentAI=ai;
   document.querySelectorAll('.ai-bar .ai-chip').forEach(c=>c.classList.remove('active'));
@@ -1459,17 +1526,18 @@ function addNeoMessage(html, label, rawText){
 async function sendChatMsg(){
   const input=document.getElementById('msg-input');
   const text=input.value.trim();
-  if(!text) return;
+  if(!text && !attachedFile) return;
+  const msgText = text || (attachedFile ? 'What is in this file?' : '');
 
   // Crisis detection
   const crisisWords=['want to die','kill myself','end my life','suicide','i want to die','marna chahta','mar jaunga','khatam karna'];
-  if(crisisWords.some(w=>text.toLowerCase().includes(w))){
+  if(crisisWords.some(w=>msgText.toLowerCase().includes(w))){
     document.getElementById('crisis-overlay').classList.add('show');
     input.value='';autoResize(input);return;
   }
   // Abuse detection
   const abuseWords=['fuck you','shit you','bitch','bastard','damn you'];
-  if(abuseWords.some(w=>text.toLowerCase().includes(w))){
+  if(abuseWords.some(w=>msgText.toLowerCase().includes(w))){
     document.getElementById('warning-overlay').classList.add('show');
   }
 
@@ -1478,20 +1546,33 @@ async function sendChatMsg(){
   userDiv.className='msg user';
   let replyHtml='';
   if(replyingTo){replyHtml=`<div class="reply-ref">↩ ${replyingTo.substring(0,60)}...</div>`;cancelReply();}
-  userDiv.innerHTML=`${replyHtml}<div class="msg-bubble">${escHtml(text)}</div><div class="msg-time">${getTime()}</div>`;
+  const fileHtml = attachedFile ? `<div style="font-size:11px;opacity:0.8;margin-bottom:4px">📎 ${attachedFile.name}</div>` : '';
+  userDiv.innerHTML=`${replyHtml}${fileHtml}<div class="msg-bubble">${escHtml(msgText)}</div><div class="msg-time">${getTime()}</div>`;
   msgs.appendChild(userDiv);
   input.value='';autoResize(input);
   msgs.scrollTop=msgs.scrollHeight;
-  saveMessage('user',text,currentAI);
-  chatHistory.push({role:'user',content:text});
+  saveMessage('user',msgText,currentAI);
+  chatHistory.push({role:'user',content:msgText});
+
+  const fileToSend = attachedFile;
+  clearFile();
 
   if(currentAI==='combined'){
     showTypingIndicator('All AIs');
-    const [g,gr,mi]=await Promise.all([
-      callGemini(text,'Reply as Gemini — be data-driven, factual and precise.'),
-      callGroq(text),
-      callMistral(text)
-    ]);
+    let g, gr, mi;
+    if(fileToSend){
+      [g, gr, mi] = await Promise.all([
+        callGeminiWithFile(msgText, fileToSend),
+        callGroq(msgText + (fileToSend.text ? '\n\nFile content: '+fileToSend.text.substring(0,2000) : '')),
+        callMistral(msgText + (fileToSend.text ? '\n\nFile content: '+fileToSend.text.substring(0,2000) : ''))
+      ]);
+    } else {
+      [g,gr,mi]=await Promise.all([
+        callGemini(msgText,'Reply as Gemini — be data-driven, factual and precise.'),
+        callGroq(msgText),
+        callMistral(msgText)
+      ]);
+    }
     document.getElementById('typing-ind')?.remove();
     const replyDiv=document.createElement('div');
     replyDiv.className='msg neo';
@@ -1508,9 +1589,18 @@ async function sendChatMsg(){
     const label=currentAI==='gpt'?'GPT (Groq)':currentAI==='claude'?'Claude (Mistral)':'Gemini';
     showTypingIndicator(label);
     let reply;
-    if(currentAI==='gpt') reply=await callGroq(text);
-    else if(currentAI==='claude') reply=await callMistral(text);
-    else reply=await callGemini(text);
+    if(fileToSend && (currentAI==='gemini')){
+      reply = await callGeminiWithFile(msgText, fileToSend);
+    } else if(fileToSend && fileToSend.text){
+      const withFile = msgText + '\n\nFile content: ' + fileToSend.text.substring(0,3000);
+      if(currentAI==='gpt') reply=await callGroq(withFile);
+      else if(currentAI==='claude') reply=await callMistral(withFile);
+      else reply=await callGemini(withFile);
+    } else {
+      if(currentAI==='gpt') reply=await callGroq(msgText);
+      else if(currentAI==='claude') reply=await callMistral(msgText);
+      else reply=await callGemini(msgText);
+    }
     addNeoMessage(renderText(reply),label,reply);
     chatHistory.push({role:'assistant',content:reply});
   }
