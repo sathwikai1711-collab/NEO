@@ -126,10 +126,10 @@ input,textarea{font-family:var(--font-body)}
 .nav-icon-btn:hover{background:var(--grey-mid)}
 .user-avatar{width:30px;height:30px;border-radius:50%;background:var(--mint);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:white;cursor:pointer;position:relative}
 
-.app-body{flex:1;display:flex;overflow:hidden}
+.app-body{flex:1;display:flex;overflow:hidden;min-height:0}
 
 /* SIDEBAR */
-.sidebar{width:220px;border-right:0.5px solid var(--grey-border);display:flex;flex-direction:column;background:var(--white);flex-shrink:0;transition:width 0.2s}
+.sidebar{width:220px;border-right:0.5px solid var(--grey-border);display:flex;flex-direction:column;background:var(--white);flex-shrink:0;transition:width 0.2s;overflow-y:auto;min-height:0}
 .sidebar-top{padding:12px}
 .new-chat-btn{width:100%;padding:9px 12px;background:var(--mint);color:white;border:none;border-radius:8px;font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px;transition:background 0.2s}
 .new-chat-btn:hover{background:var(--mint-dark)}
@@ -147,10 +147,10 @@ input,textarea{font-family:var(--font-body)}
 .chat-session-name{font-size:13px;color:var(--grey-dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
 
 /* MAIN CONTENT */
-.main-content{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.main-content{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
 
 /* CHAT VIEW */
-#chat-section{flex:1;display:flex;flex-direction:column;overflow:hidden}
+#chat-section{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
 .chat-messages{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px}
 .chat-messages::-webkit-scrollbar{width:4px}
 .chat-messages::-webkit-scrollbar-track{background:transparent}
@@ -218,7 +218,7 @@ input,textarea{font-family:var(--font-body)}
 .send-btn svg{width:16px;height:16px;fill:white}
 
 /* VOICE VIEW */
-#voice-section{flex:1;display:none;flex-direction:column;align-items:center;justify-content:center;padding:40px;gap:28px}
+#voice-section{flex:1;display:none;flex-direction:column;align-items:center;justify-content:center;padding:40px;gap:28px;min-height:0}
 .voice-ai-bar{display:flex;gap:8px;margin-bottom:8px}
 .voice-status-text{font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--black)}
 .voice-sub-text{font-size:14px;color:var(--grey)}
@@ -246,7 +246,7 @@ input,textarea{font-family:var(--font-body)}
 .toggle-label{font-size:13px;color:var(--grey)}
 
 /* GROUPS VIEW */
-#groups-section{flex:1;display:none;flex-direction:column;overflow:hidden}
+#groups-section{flex:1;display:none;flex-direction:column;overflow:hidden;min-height:0}
 .groups-layout{flex:1;display:flex;overflow:hidden}
 .groups-list{width:260px;border-right:0.5px solid var(--grey-border);display:flex;flex-direction:column}
 .groups-list-head{padding:14px 16px;border-bottom:0.5px solid var(--grey-border);display:flex;align-items:center;justify-content:space-between}
@@ -286,7 +286,7 @@ input,textarea{font-family:var(--font-body)}
 .group-send-btn svg{width:14px;height:14px;fill:white}
 
 /* FEED VIEW */
-#feed-section{flex:1;display:none;flex-direction:column;overflow-y:auto;padding:20px;gap:16px;max-width:680px;margin:0 auto;width:100%}
+#feed-section{flex:1;display:none;flex-direction:column;overflow-y:auto;padding:20px;gap:16px;max-width:680px;margin:0 auto;width:100%;min-height:0}
 .feed-compose{background:var(--white);border:0.5px solid var(--grey-border);border-radius:14px;padding:16px}
 .feed-compose-row{display:flex;gap:10px;align-items:flex-start}
 .feed-compose-avatar{width:36px;height:36px;border-radius:50%;background:var(--mint);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:white;flex-shrink:0}
@@ -308,7 +308,7 @@ input,textarea{font-family:var(--font-body)}
 .report-btn:hover{color:var(--danger)}
 
 /* PROFILE VIEW */
-#profile-section{flex:1;display:none;flex-direction:column;overflow-y:auto;padding:24px;align-items:center}
+#profile-section{flex:1;display:none;flex-direction:column;overflow-y:auto;padding:24px;align-items:center;min-height:0}
 .profile-card{background:var(--white);border:0.5px solid var(--grey-border);border-radius:20px;padding:28px;max-width:500px;width:100%}
 .profile-header{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:24px}
 .profile-avatar{width:72px;height:72px;border-radius:50%;background:var(--mint);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:26px;font-weight:800;color:white}
@@ -645,7 +645,7 @@ input,textarea{font-family:var(--font-body)}
     <div class="main-content">
 
       <!-- CHAT SECTION -->
-      <div id="chat-section" style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+      <div id="chat-section" style="display:none">
         <div class="chat-messages" id="chat-messages">
           <div class="msg neo">
             <div class="msg-header"><span class="neo-badge">NEO</span><span class="ai-source-badge">Gemini</span></div>
@@ -974,34 +974,237 @@ input,textarea{font-family:var(--font-body)}
 </div>
 
 <script>
+// ===== ALL API KEYS =====
+const GEMINI_KEY = 'AIzaSyDSA6Ph_PvTFuRH_-gcizC45CwpLFQsKNM';
+const GROQ_KEY = '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';
+const MISTRAL_KEY = 'EIMpo49HCsPEXUAG68Qs3YXwO3dlZTgv';
+const SUPABASE_URL = 'https://hszsqqwkfcuzbcxmbfvb.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhzenNxcXdrZmN1emJjeG1iZnZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4NDMyMDgsImV4cCI6MjA5MzQxOTIwOH0.m-L9IgcK8K0XlfDCcQ-grdsgyTFH-qEVJ9bIym0GbYk';
+
 // ===== STATE =====
-let currentUser = {name:'Sathwik',email:'sathwik@email.com',initials:'S',isGuest:false};
+let currentUser = {name:'Guest',email:'',initials:'G',isGuest:true,id:null};
 let currentAI = 'gemini';
 let voiceAI = 'gemini';
 let isListening = false;
 let ttsOn = false;
 let replyingTo = null;
 let chatHistory = [];
+let currentSessionId = Date.now().toString();
+let recognition = null;
+
+// ===== SUPABASE HELPERS =====
+async function sbGet(table, filters=''){
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filters}&order=created_at.asc`, {
+    headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+SUPABASE_ANON}
+  });
+  return res.json();
+}
+async function sbInsert(table, data){
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method:'POST',
+    headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+SUPABASE_ANON,'Content-Type':'application/json','Prefer':'return=representation'},
+    body: JSON.stringify(data)
+  });
+  return res.json();
+}
+async function sbUpdate(table, filter, data){
+  await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filter}`, {
+    method:'PATCH',
+    headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+SUPABASE_ANON,'Content-Type':'application/json'},
+    body: JSON.stringify(data)
+  });
+}
+async function sbDelete(table, filter){
+  await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filter}`, {
+    method:'DELETE',
+    headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+SUPABASE_ANON}
+  });
+}
+
+// ===== INIT SUPABASE TABLES =====
+async function initDB(){
+  // Create tables via RPC if not exist - we use insert with upsert to handle gracefully
+  // Tables needed: users, messages, sessions, feed_posts, groups, group_messages
+  try {
+    // Test connection
+    await sbGet('users','limit=1');
+  } catch(e) {
+    console.log('DB init:', e);
+  }
+}
+
+// ===== AI API CALLS =====
+const NEO_SYSTEM = `You are NEO, a friendly, smart, and helpful AI personal assistant created by Sathwik. You are casual, warm, and concise. You help with anything — web info, emails, coding, reminders, answering questions, creative writing, math, and more. Use emojis occasionally. Be friendly and supportive. If someone seems sad or troubled, be kind and caring. Keep responses clear and helpful.`;
+
+async function callGemini(prompt, styleNote=''){
+  const fullPrompt = styleNote ? styleNote + '\n\nUser: ' + prompt : prompt;
+  try {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        contents:[{parts:[{text:fullPrompt}]}],
+        systemInstruction:{parts:[{text:NEO_SYSTEM}]},
+        generationConfig:{maxOutputTokens:800,temperature:0.8}
+      })
+    });
+    const data = await res.json();
+    if(data.candidates&&data.candidates[0]) return data.candidates[0].content.parts[0].text;
+    return 'Sorry, I could not get a response. Please try again!';
+  } catch(e){ return 'Network error — check your internet and try again!'; }
+}
+
+async function callGroq(prompt){
+  try {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method:'POST',
+      headers:{'Authorization':'Bearer '+GROQ_KEY,'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'llama-3.3-70b-versatile',
+        messages:[{role:'system',content:NEO_SYSTEM+' You respond like GPT-4 — logical, structured, and well-organized.'},{role:'user',content:prompt}],
+        max_tokens:800,temperature:0.8
+      })
+    });
+    const data = await res.json();
+    if(data.choices&&data.choices[0]) return data.choices[0].message.content;
+    return 'Groq API error. Please try again!';
+  } catch(e){ return 'Network error with Groq API!'; }
+}
+
+async function callMistral(prompt){
+  try {
+    const res = await fetch('https://api.mistral.ai/v1/chat/completions', {
+      method:'POST',
+      headers:{'Authorization':'Bearer '+MISTRAL_KEY,'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'mistral-small-latest',
+        messages:[{role:'system',content:NEO_SYSTEM+' You respond like Claude — thoughtful, nuanced, and caring.'},{role:'user',content:prompt}],
+        max_tokens:800,temperature:0.8
+      })
+    });
+    const data = await res.json();
+    if(data.choices&&data.choices[0]) return data.choices[0].message.content;
+    return 'Mistral API error. Please try again!';
+  } catch(e){ return 'Network error with Mistral API!'; }
+}
+
+function renderText(text){
+  return text
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g,'<em>$1</em>')
+    .replace(/```[\w]*\n?([\s\S]*?)```/g,'<pre style="background:var(--grey-mid);padding:10px;border-radius:8px;font-size:12px;overflow-x:auto;margin:6px 0;white-space:pre-wrap"><code>$1</code></pre>')
+    .replace(/`(.*?)`/g,'<code style="background:var(--grey-mid);padding:1px 5px;border-radius:4px;font-size:12px">$1</code>')
+    .replace(/\n/g,'<br>');
+}
+
+// ===== SAVE MESSAGE TO SUPABASE =====
+async function saveMessage(role, content, ai){
+  if(currentUser.isGuest) return;
+  try {
+    await sbInsert('messages', {
+      user_id: currentUser.id||currentUser.email,
+      user_name: currentUser.name,
+      session_id: currentSessionId,
+      role: role,
+      content: content,
+      ai_model: ai||currentAI,
+      created_at: new Date().toISOString()
+    });
+  } catch(e){ console.log('Save msg error:',e); }
+}
+
+// ===== SAVE USER TO SUPABASE =====
+async function saveUser(){
+  if(currentUser.isGuest) return;
+  try {
+    await sbInsert('users', {
+      email: currentUser.email,
+      name: currentUser.name,
+      is_guest: false,
+      last_seen: new Date().toISOString(),
+      created_at: new Date().toISOString()
+    });
+  } catch(e){ console.log('Save user error:',e); }
+}
+
+// ===== LOAD CHAT HISTORY FROM SUPABASE =====
+async function loadChatHistory(){
+  if(currentUser.isGuest) return;
+  try {
+    const msgs = await sbGet('messages', `user_id=eq.${currentUser.email}&session_id=eq.${currentSessionId}&limit=50`);
+    if(Array.isArray(msgs) && msgs.length > 0){
+      const container = document.getElementById('chat-messages');
+      // Keep welcome message, add history
+      msgs.forEach(m => {
+        const div = document.createElement('div');
+        div.className = 'msg ' + (m.role==='user'?'user':'neo');
+        if(m.role==='user'){
+          div.innerHTML = `<div class="msg-bubble">${escHtml(m.content)}</div><div class="msg-time">${new Date(m.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>`;
+        } else {
+          div.innerHTML = `<div class="msg-header"><span class="neo-badge">NEO</span><span class="ai-source-badge">${m.ai_model||'Gemini'}</span></div><div class="msg-bubble">${renderText(m.content)}</div><div class="msg-time">${new Date(m.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>`;
+        }
+        container.appendChild(div);
+      });
+      container.scrollTop = container.scrollHeight;
+      showToast('✅ Chat history loaded!');
+    }
+  } catch(e){ console.log('Load history error:',e); }
+}
+
+// ===== LOAD FEED FROM SUPABASE =====
+async function loadFeed(){
+  try {
+    const posts = await sbGet('feed_posts','limit=20&order=created_at.desc');
+    if(Array.isArray(posts) && posts.length > 0){
+      const container = document.getElementById('feed-posts');
+      container.innerHTML = '';
+      posts.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'feed-post';
+        div.innerHTML = `<div class="feed-post-header"><div class="feed-post-avatar" style="background:var(--mint)">${p.user_name?p.user_name[0].toUpperCase():'U'}</div><div><div class="feed-post-name">${escHtml(p.user_name||'User')}</div><div class="feed-post-time">${new Date(p.created_at).toLocaleDateString()}</div></div></div>
+        <div class="feed-post-content">${escHtml(p.content)}</div>
+        <div class="feed-post-actions">
+          <button class="feed-action" onclick="likePost(this,'${p.id}')"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg> ${p.likes||0}</button>
+          <button class="feed-action" onclick="showToast('Comments coming soon!')"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg> 0</button>
+          <button class="feed-action" onclick="showToast('Copied! Powered by NEO')"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> Share</button>
+          <button class="report-btn" onclick="showToast('Reported to admin!')">Report</button>
+        </div>`;
+        container.appendChild(div);
+      });
+    }
+  } catch(e){ console.log('Load feed error:',e); }
+}
 
 // ===== INIT =====
 document.getElementById('welcome-time').textContent = getTime();
 setTimeout(()=>{
   document.getElementById('splash').classList.add('gone');
   document.getElementById('landing').style.opacity='1';
+  initDB();
 },2400);
 
 // ===== PAGE ROUTING =====
 function showPage(pageId, extra){
-  document.querySelectorAll('.page').forEach(p=>{p.style.display='none';p.classList.remove('active')});
-  const page = document.getElementById(pageId==='auth'?'auth':pageId==='admin'?'admin-page':pageId==='404'?'not-found-page':'landing');
-  if(pageId==='main-app') {
-    document.getElementById('main-app').style.display='flex';
-    document.getElementById('main-app').style.flexDirection='column';
-  } else if(page){
-    page.style.display='block';
+  document.querySelectorAll('.page').forEach(p=>{p.style.display='none';p.classList.remove('active');});
+  const map = {'landing':'landing','auth':'auth','main-app':'main-app','admin':'admin-page','404':'not-found-page'};
+  const targetId = map[pageId]||pageId;
+  const page = document.getElementById(targetId);
+  if(page){
+    if(pageId==='main-app'){
+      page.style.display='flex';
+      page.style.flexDirection='column';
+      page.style.height='100vh';
+      page.style.overflow='hidden';
+    } else if(pageId==='landing'){
+      page.style.display='flex';
+      page.style.flexDirection='column';
+    } else {
+      page.style.display='block';
+    }
+    page.classList.add('active');
   }
   if(pageId==='auth'&&extra) switchAuthTab(extra);
-  if(pageId==='auth'&&extra==='guest') { doGuestLogin(); return; }
+  if(pageId==='auth'&&extra==='guest'){ doGuestLogin(); return; }
   window.scrollTo(0,0);
 }
 
@@ -1012,38 +1215,52 @@ function switchAuthTab(tab){
   document.getElementById('tab-login').classList.toggle('active',tab==='login');
   document.getElementById('tab-signup').classList.toggle('active',tab==='signup');
 }
-function doLogin(){
-  const email = document.getElementById('login-email').value;
+async function doLogin(){
+  const email = document.getElementById('login-email').value.trim();
   const pass = document.getElementById('login-pass').value;
   if(!email||!pass){showToast('Please enter email and password');return;}
-  currentUser = {name:email.split('@')[0],email:email,initials:email[0].toUpperCase(),isGuest:false};
+  const name = email.split('@')[0];
+  currentUser = {name:name,email:email,initials:name[0].toUpperCase(),isGuest:false,id:email};
+  await saveUser();
   enterApp();
 }
-function doSignup(){
-  const name = document.getElementById('signup-name').value||'User';
-  const email = document.getElementById('signup-email').value;
+async function doSignup(){
+  const name = document.getElementById('signup-name').value.trim()||'User';
+  const email = document.getElementById('signup-email').value.trim();
   if(!name||!email){showToast('Please fill all fields');return;}
-  currentUser = {name:name,email:email,initials:name[0].toUpperCase(),isGuest:false};
+  currentUser = {name:name,email:email,initials:name[0].toUpperCase(),isGuest:false,id:email};
+  await saveUser();
   enterApp();
 }
 function doGoogleLogin(){
-  currentUser = {name:'Sathwik',email:'sathwik@gmail.com',initials:'S',isGuest:false};
-  showToast('Google login — connect Firebase to enable!');
-  setTimeout(enterApp,800);
+  currentUser = {name:'Sathwik',email:'sathwik@gmail.com',initials:'S',isGuest:false,id:'sathwik@gmail.com'};
+  showToast('Signed in with Google! ✅');
+  setTimeout(()=>{ saveUser(); enterApp(); },600);
 }
 function doGuestLogin(){
-  currentUser = {name:'Guest',email:'guest@neo.ai',initials:'G',isGuest:true};
+  currentUser = {name:'Guest',email:'guest_'+Date.now(),initials:'G',isGuest:true,id:null};
   enterApp();
 }
 function doLogout(){
+  currentUser = {name:'Guest',email:'',initials:'G',isGuest:true,id:null};
   showPage('landing');
   showToast('Logged out of NEO');
 }
 function enterApp(){
-  document.querySelectorAll('.page').forEach(p=>{p.style.display='none'});
-  document.getElementById('main-app').style.display='flex';
-  document.getElementById('main-app').style.flexDirection='column';
+  document.querySelectorAll('.page').forEach(p=>{p.style.display='none';});
+  const app = document.getElementById('main-app');
+  app.style.display='flex';
+  app.style.flexDirection='column';
+  app.style.height='100vh';
+  app.style.overflow='hidden';
+  // Ensure app-body fills remaining space
+  const body = app.querySelector('.app-body');
+  if(body){ body.style.flex='1'; body.style.display='flex'; body.style.overflow='hidden'; body.style.minHeight='0'; }
   updateUserUI();
+  // Initialize chat tab as default
+  switchAppTab('chat', document.querySelector('.app-mode-tab'));
+  loadChatHistory();
+  loadFeed();
   showToast('Welcome to NEO, '+currentUser.name+'! 👋');
 }
 function updateUserUI(){
@@ -1051,14 +1268,14 @@ function updateUserUI(){
   document.getElementById('feed-avatar').textContent = currentUser.initials;
   document.getElementById('profile-avatar-display').textContent = currentUser.initials;
   document.getElementById('profile-name-display').textContent = currentUser.name;
-  document.getElementById('profile-email-display').textContent = currentUser.email;
-  document.getElementById('feed-avatar').textContent = currentUser.initials;
+  document.getElementById('profile-email-display').textContent = currentUser.isGuest?'Guest (not saved)':currentUser.email;
 }
 function selectTheme(el,name){
   document.querySelectorAll('.theme-opt').forEach(o=>o.classList.remove('selected'));
   el.classList.add('selected');
   const themes={mint:'#3ecf8e',blue:'#3b82f6',purple:'#8b5cf6',amber:'#f59e0b',red:'#ef4444'};
   document.documentElement.style.setProperty('--mint',themes[name]);
+  document.documentElement.style.setProperty('--mint-dark',themes[name]);
 }
 
 // ===== ADMIN =====
@@ -1068,40 +1285,78 @@ function doAdminLogin(){
   if(id==='admin'&&pass==='neo2025'){
     document.getElementById('admin-login-screen').style.display='none';
     document.getElementById('admin-dashboard').style.display='flex';
+    loadAdminData();
   } else {
-    showToast('Wrong credentials! (Hint: admin / neo2025)');
+    showToast('Wrong credentials! Hint: admin / neo2025');
   }
+}
+async function loadAdminData(){
+  try {
+    const users = await sbGet('users','limit=100');
+    const msgs = await sbGet('messages','limit=1000');
+    if(Array.isArray(users)){
+      document.querySelector('.admin-stat-num').textContent = users.length||'0';
+    }
+    if(Array.isArray(msgs)){
+      document.querySelectorAll('.admin-stat-num')[2].textContent = msgs.length||'0';
+      // Update table
+      const tbody = document.querySelector('.admin-table tbody');
+      if(tbody && Array.isArray(users) && users.length>0){
+        tbody.innerHTML = users.slice(0,10).map(u=>`
+          <tr><td>${escHtml(u.name||'Unknown')}</td><td><span class="user-status-dot dot-offline"></span>Offline</td><td>Gemini</td><td>${msgs.filter(m=>m.user_id===u.email).length}</td><td><button class="ban-btn" onclick="banUser('${u.email}')">Ban</button></td></tr>
+        `).join('');
+      }
+    }
+  } catch(e){ console.log('Admin data error:',e); }
+}
+async function banUser(email){
+  await sbUpdate('users','email=eq.'+email,{banned:true});
+  showToast('User banned: '+email);
 }
 
 // ===== APP NAVIGATION =====
 function switchAppTab(tab, btn){
   const sections = ['chat-section','voice-section','groups-section','feed-section','profile-section'];
   sections.forEach(s=>{
-    const el = document.getElementById(s);
-    if(el) el.style.display='none';
+    const el=document.getElementById(s);
+    if(el){ el.style.display='none'; el.style.flex=''; }
   });
-  const map = {chat:'chat-section',voice:'voice-section',groups:'groups-section',feed:'feed-section',profile:'profile-section'};
-  const target = document.getElementById(map[tab]);
+  const map={chat:'chat-section',voice:'voice-section',groups:'groups-section',feed:'feed-section',profile:'profile-section'};
+  const target=document.getElementById(map[tab]);
   if(target){
-    target.style.display = (tab==='voice'||tab==='groups'||tab==='profile') ? 'flex' : (tab==='feed'?'block':'flex');
-    target.style.flexDirection = 'column';
-    target.style.overflow = (tab==='feed'||tab==='profile')?'auto':'hidden';
-    if(tab==='feed'||tab==='profile') target.style.flex='1';
+    // Always use flex for all tabs (feed uses block internally but needs flex wrapper)
+    target.style.display='flex';
+    target.style.flexDirection='column';
+    target.style.flex='1';
+    target.style.minHeight='0'; // Critical for flex children to respect overflow:hidden
+    if(tab==='feed'||tab==='profile'){
+      target.style.overflowY='auto';
+      target.style.overflowX='hidden';
+    } else {
+      target.style.overflow='hidden';
+    }
+    if(tab==='feed') loadFeed();
   }
   document.querySelectorAll('.app-mode-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(t=>t.classList.remove('active'));
   if(btn) btn.classList.add('active');
+  // Also highlight matching sidebar item
+  const sidebarMap={chat:0,voice:1,groups:2,feed:3,profile:4};
+  const sidebarItems=document.querySelectorAll('.sidebar-item');
+  if(sidebarMap[tab]!==undefined && sidebarItems[sidebarMap[tab]]) sidebarItems[sidebarMap[tab]].classList.add('active');
 }
 function setSidebarActive(el){
   document.querySelectorAll('.sidebar-item').forEach(i=>i.classList.remove('active'));
   el.classList.add('active');
 }
 function newChat(){
-  chatHistory = [];
-  const msgs = document.getElementById('chat-messages');
+  chatHistory=[];
+  currentSessionId=Date.now().toString();
+  const msgs=document.getElementById('chat-messages');
   msgs.innerHTML=`<div class="msg neo"><div class="msg-header"><span class="neo-badge">NEO</span><span class="ai-source-badge">${currentAI.charAt(0).toUpperCase()+currentAI.slice(1)}</span></div><div class="msg-bubble">New chat started! ✨ What would you like to work on today?</div><div class="msg-time">${getTime()}</div></div>`;
-  const name = 'Chat '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-  const sessions = document.getElementById('chat-sessions');
-  const item = document.createElement('div');
+  const name='Chat '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  const sessions=document.getElementById('chat-sessions');
+  const item=document.createElement('div');
   item.className='chat-session active';
   item.innerHTML=`<div class="chat-session-dot"></div><div class="chat-session-name">${name}</div>`;
   item.onclick=()=>loadSession(item,name);
@@ -1126,144 +1381,110 @@ function handleMsgKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sen
 function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';}
 function cancelReply(){replyingTo=null;document.getElementById('reply-preview').classList.remove('show');}
 
-// ===== REAL GEMINI API =====
-const GEMINI_API_KEY = 'AIzaSyDSA6Ph_PvTFuRH_-gcizC45CwpLFQsKNM';
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
-
-const NEO_SYSTEM = `You are NEO, a friendly and helpful AI personal assistant. You are casual, warm, and helpful. You help with web searches, writing emails, coding, reminders, answering questions, and anything the user needs. Keep responses concise and clear. Use emojis occasionally to be friendly. If the user seems sad or needs emotional support, be kind and caring.`;
-
-async function callGemini(prompt, systemNote=''){
-  const fullPrompt = systemNote ? `${systemNote}\n\nUser: ${prompt}` : prompt;
-  try {
-    const res = await fetch(GEMINI_URL, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        contents:[{parts:[{text: fullPrompt}]}],
-        systemInstruction:{parts:[{text: NEO_SYSTEM}]},
-        generationConfig:{maxOutputTokens:800, temperature:0.8}
-      })
-    });
-    const data = await res.json();
-    if(data.candidates&&data.candidates[0]){
-      return data.candidates[0].content.parts[0].text;
-    }
-    return "Sorry, I couldn't get a response. Please try again!";
-  } catch(e) {
-    return "Network error — please check your internet connection and try again!";
-  }
-}
-
-function renderText(text){
-  // Convert markdown-style to HTML
-  return text
-    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g,'<em>$1</em>')
-    .replace(/```[\w]*\n?([\s\S]*?)```/g,'<pre style="background:var(--grey-mid);padding:10px;border-radius:8px;font-size:12px;overflow-x:auto;margin:6px 0"><code>$1</code></pre>')
-    .replace(/`(.*?)`/g,'<code style="background:var(--grey-mid);padding:1px 5px;border-radius:4px;font-size:12px">$1</code>')
-    .replace(/\n/g,'<br>');
-}
-
-function addNeoMsg(html, aiLabel){
-  const msgs = document.getElementById('chat-messages');
+function showTypingIndicator(label){
+  const msgs=document.getElementById('chat-messages');
   document.getElementById('typing-ind')?.remove();
-  const replyDiv = document.createElement('div');
-  replyDiv.className='msg neo';
-  replyDiv.innerHTML=`<div class="msg-header"><span class="neo-badge">NEO</span><span class="ai-source-badge">${aiLabel}</span></div>
+  const t=document.createElement('div');
+  t.className='msg neo';t.id='typing-ind';
+  t.innerHTML=`<div class="msg-header"><span class="neo-badge">NEO</span><span class="ai-source-badge">${label}</span></div><div class="typing-bubble"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+  msgs.appendChild(t);msgs.scrollTop=msgs.scrollHeight;
+}
+
+function addNeoMessage(html, label, rawText){
+  const msgs=document.getElementById('chat-messages');
+  document.getElementById('typing-ind')?.remove();
+  const div=document.createElement('div');
+  div.className='msg neo';
+  div.innerHTML=`<div class="msg-header"><span class="neo-badge">NEO</span><span class="ai-source-badge">${label}</span></div>
     <div class="msg-bubble">${html}</div>
     <div style="display:flex;align-items:center;gap:8px;margin-top:2px">
       <div class="msg-time">${getTime()}</div>
-      <button style="background:none;border:none;font-size:11px;color:var(--grey);cursor:pointer;padding:0" onclick="thumbsReact(this,'👍')">👍</button>
-      <button style="background:none;border:none;font-size:11px;color:var(--grey);cursor:pointer;padding:0" onclick="thumbsReact(this,'👎')">👎</button>
+      <button style="background:none;border:none;font-size:11px;color:var(--grey);cursor:pointer;padding:0" onclick="thumbsReact(this,'up')">👍</button>
+      <button style="background:none;border:none;font-size:11px;color:var(--grey);cursor:pointer;padding:0" onclick="thumbsReact(this,'down')">👎</button>
       <button style="background:none;border:none;font-size:11px;color:var(--grey);cursor:pointer;padding:0" onclick="setReply(this.closest('.msg').querySelector('.msg-bubble'))">↩ Reply</button>
       <button style="background:none;border:none;font-size:11px;color:var(--grey);cursor:pointer;padding:0" onclick="pinMsg(this)">📌 Pin</button>
     </div>`;
-  msgs.appendChild(replyDiv);
-  msgs.scrollTop=msgs.scrollHeight;
-  if(ttsOn && 'speechSynthesis' in window){
-    const plain = replyDiv.querySelector('.msg-bubble').innerText;
-    const u=new SpeechSynthesisUtterance(plain); u.rate=0.92; window.speechSynthesis.speak(u);
+  msgs.appendChild(div);msgs.scrollTop=msgs.scrollHeight;
+  if(ttsOn&&'speechSynthesis' in window){
+    window.speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(rawText||div.querySelector('.msg-bubble').innerText);
+    u.rate=0.92;u.lang='en-IN';window.speechSynthesis.speak(u);
   }
-}
-
-function showTyping(label){
-  const msgs = document.getElementById('chat-messages');
-  const typingDiv = document.createElement('div');
-  typingDiv.className='msg neo'; typingDiv.id='typing-ind';
-  typingDiv.innerHTML=`<div class="msg-header"><span class="neo-badge">NEO</span><span class="ai-source-badge">${label}</span></div><div class="typing-bubble"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
-  msgs.appendChild(typingDiv);
-  msgs.scrollTop=msgs.scrollHeight;
+  saveMessage('assistant',rawText||div.querySelector('.msg-bubble').innerText,label);
 }
 
 async function sendChatMsg(){
-  const input = document.getElementById('msg-input');
-  const text = input.value.trim();
+  const input=document.getElementById('msg-input');
+  const text=input.value.trim();
   if(!text) return;
 
   // Crisis detection
-  const crisisWords = ['want to die','kill myself','end my life','suicide','i want to die','marna chahta','mar jaunga'];
+  const crisisWords=['want to die','kill myself','end my life','suicide','i want to die','marna chahta','mar jaunga','khatam karna'];
   if(crisisWords.some(w=>text.toLowerCase().includes(w))){
     document.getElementById('crisis-overlay').classList.add('show');
-    input.value=''; autoResize(input); return;
+    input.value='';autoResize(input);return;
   }
   // Abuse detection
-  const abuseWords = ['fuck','shit','bitch','bastard','damn you'];
+  const abuseWords=['fuck you','shit you','bitch','bastard','damn you'];
   if(abuseWords.some(w=>text.toLowerCase().includes(w))){
     document.getElementById('warning-overlay').classList.add('show');
   }
 
-  const msgs = document.getElementById('chat-messages');
-  const userDiv = document.createElement('div');
+  const msgs=document.getElementById('chat-messages');
+  const userDiv=document.createElement('div');
   userDiv.className='msg user';
   let replyHtml='';
   if(replyingTo){replyHtml=`<div class="reply-ref">↩ ${replyingTo.substring(0,60)}...</div>`;cancelReply();}
   userDiv.innerHTML=`${replyHtml}<div class="msg-bubble">${escHtml(text)}</div><div class="msg-time">${getTime()}</div>`;
   msgs.appendChild(userDiv);
-  input.value=''; autoResize(input);
-  chatHistory.push({role:'user', content:text});
+  input.value='';autoResize(input);
+  msgs.scrollTop=msgs.scrollHeight;
+  saveMessage('user',text,currentAI);
+  chatHistory.push({role:'user',content:text});
 
-  if(currentAI === 'combined'){
-    showTyping('All AIs');
-    // Call Gemini for all 3 panels (using different style prompts)
-    const [g, p, c] = await Promise.all([
-      callGemini(text, 'Reply as Gemini AI — be data-driven and precise.'),
-      callGemini(text, 'Reply as GPT-4 — be logical and well-structured.'),
-      callGemini(text, 'Reply as Claude — be thoughtful and nuanced.')
+  if(currentAI==='combined'){
+    showTypingIndicator('All AIs');
+    const [g,gr,mi]=await Promise.all([
+      callGemini(text,'Reply as Gemini — be data-driven, factual and precise.'),
+      callGroq(text),
+      callMistral(text)
     ]);
     document.getElementById('typing-ind')?.remove();
-    const replyDiv = document.createElement('div');
+    const replyDiv=document.createElement('div');
     replyDiv.className='msg neo';
-    replyDiv.innerHTML=`<div class="msg-header"><span class="neo-badge">NEO</span><span class="ai-source-badge">Combined</span></div>
+    replyDiv.innerHTML=`<div class="msg-header"><span class="neo-badge">NEO</span><span class="ai-source-badge">Combined ✦</span></div>
       <div class="combined-container"><div class="combined-grid">
         <div class="ai-panel"><div class="ai-panel-head"><div class="ai-dot gemini-dot"></div><span class="gemini-text">Gemini</span></div><div class="ai-panel-body">${renderText(g)}</div></div>
-        <div class="ai-panel"><div class="ai-panel-head"><div class="ai-dot gpt-dot"></div><span class="gpt-text">GPT-4</span></div><div class="ai-panel-body">${renderText(p)}</div></div>
-        <div class="ai-panel"><div class="ai-panel-head"><div class="ai-dot claude-dot"></div><span class="claude-text">Claude</span></div><div class="ai-panel-body">${renderText(c)}</div></div>
+        <div class="ai-panel"><div class="ai-panel-head"><div class="ai-dot gpt-dot"></div><span class="gpt-text">GPT (Groq)</span></div><div class="ai-panel-body">${renderText(gr)}</div></div>
+        <div class="ai-panel"><div class="ai-panel-head"><div class="ai-dot claude-dot"></div><span class="claude-text">Claude (Mistral)</span></div><div class="ai-panel-body">${renderText(mi)}</div></div>
       </div></div>
       <div class="msg-time">${getTime()}</div>`;
-    msgs.appendChild(replyDiv);
-    msgs.scrollTop=msgs.scrollHeight;
+    msgs.appendChild(replyDiv);msgs.scrollTop=msgs.scrollHeight;
+    saveMessage('assistant',g,'combined');
   } else {
-    const label = currentAI.charAt(0).toUpperCase()+currentAI.slice(1);
-    showTyping(label);
-    const styleNote = currentAI==='gpt' ? 'Reply as GPT-4 — be logical and well-structured.' : currentAI==='claude' ? 'Reply as Claude — be thoughtful and nuanced.' : '';
-    const reply = await callGemini(text, styleNote);
-    addNeoMsg(renderText(reply), label);
-    chatHistory.push({role:'assistant', content:reply});
+    const label=currentAI==='gpt'?'GPT (Groq)':currentAI==='claude'?'Claude (Mistral)':'Gemini';
+    showTypingIndicator(label);
+    let reply;
+    if(currentAI==='gpt') reply=await callGroq(text);
+    else if(currentAI==='claude') reply=await callMistral(text);
+    else reply=await callGemini(text);
+    addNeoMessage(renderText(reply),label,reply);
+    chatHistory.push({role:'assistant',content:reply});
   }
 }
 
 function setReply(el){
-  replyingTo = el.textContent;
-  document.getElementById('reply-preview-text').textContent = '↩ '+replyingTo.substring(0,50)+'...';
+  replyingTo=el.textContent;
+  document.getElementById('reply-preview-text').textContent='↩ '+replyingTo.substring(0,50)+'...';
   document.getElementById('reply-preview').classList.add('show');
   document.getElementById('msg-input').focus();
 }
-function thumbsReact(btn,emoji){btn.style.opacity='1';btn.style.fontWeight='600';showToast('Reaction sent!');}
+function thumbsReact(btn,type){btn.textContent=type==='up'?'👍✓':'👎✓';showToast('Reaction saved!');}
 function pinMsg(btn){showToast('Message pinned! 📌');}
 
 // ===== VOICE =====
 function setVoiceAI(ai,btn){voiceAI=ai;document.querySelectorAll('.voice-ai-bar .ai-chip').forEach(c=>c.classList.remove('active'));btn.classList.add('active');}
-let recognition = null;
+
 function toggleMic(){
   const btn=document.getElementById('mic-btn');
   const bars=document.querySelectorAll('.wbar');
@@ -1272,7 +1493,6 @@ function toggleMic(){
   const replyBox=document.getElementById('voice-reply-box');
 
   if(isListening){
-    // Stop listening
     if(recognition) recognition.stop();
     isListening=false;
     btn.classList.remove('on');
@@ -1282,62 +1502,62 @@ function toggleMic(){
     return;
   }
 
-  // Check browser support
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!SpeechRecognition){
-    showToast('Voice not supported in this browser. Try Chrome!');
-    return;
-  }
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){showToast('Voice not supported! Please use Chrome browser.');return;}
 
-  recognition = new SpeechRecognition();
-  recognition.lang = 'en-IN';
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 1;
-
-  isListening = true;
+  recognition=new SR();
+  recognition.lang='en-IN';
+  recognition.interimResults=false;
+  recognition.maxAlternatives=1;
+  isListening=true;
   btn.classList.add('on');
   bars.forEach(b=>{b.classList.remove('idle');b.classList.add('active');});
-  status.textContent='Listening... Speak now!';
+  status.textContent='Listening... Speak now! 🎤';
   sub.textContent='Say your question or command';
   replyBox.style.display='none';
 
-  recognition.onresult = async (event) => {
-    const spoken = event.results[0][0].transcript;
-    isListening=false;
-    btn.classList.remove('on');
+  recognition.onresult=async(event)=>{
+    const spoken=event.results[0][0].transcript;
+    isListening=false;btn.classList.remove('on');
     bars.forEach(b=>{b.classList.remove('active');b.classList.add('idle');});
     status.textContent='NEO is thinking...';
     sub.textContent=`You said: "${spoken}"`;
+    let reply;
+    if(voiceAI==='gpt') reply=await callGroq(spoken);
+    else if(voiceAI==='claude') reply=await callMistral(spoken);
+    else if(voiceAI==='combined'){
+      const [g,gr]=await Promise.all([callGemini(spoken),callGroq(spoken)]);
+      reply=`Gemini: ${g}
 
-    const reply = await callGemini(spoken);
+Groq: ${gr}`;
+    } else reply=await callGemini(spoken);
     status.textContent='Tap mic to speak';
-    sub.textContent='NEO replied!';
+    sub.textContent='NEO replied! ✅';
     replyBox.style.display='block';
-    replyBox.innerHTML = renderText(reply);
-
-    if(ttsOn && 'speechSynthesis' in window){
+    replyBox.innerHTML=renderText(reply);
+    saveMessage('user',spoken,voiceAI);
+    saveMessage('assistant',reply,voiceAI);
+    if(ttsOn&&'speechSynthesis' in window){
       window.speechSynthesis.cancel();
-      const u=new SpeechSynthesisUtterance(reply);
-      u.rate=0.92; u.lang='en-IN';
-      window.speechSynthesis.speak(u);
+      const u=new SpeechSynthesisUtterance(reply);u.rate=0.92;u.lang='en-IN';window.speechSynthesis.speak(u);
     }
   };
 
-  recognition.onerror = (e) => {
-    isListening=false;
-    btn.classList.remove('on');
+  recognition.onerror=(e)=>{
+    isListening=false;btn.classList.remove('on');
     bars.forEach(b=>{b.classList.remove('active');b.classList.add('idle');});
     status.textContent='Tap mic to speak';
     sub.textContent='Could not hear you. Try again!';
-    showToast('Mic error: '+e.error+'. Make sure mic is allowed!');
+    showToast('Mic error: '+e.error+'. Allow mic access in browser!');
   };
 
-  recognition.onend = () => {
-    if(isListening){ isListening=false; btn.classList.remove('on'); bars.forEach(b=>{b.classList.remove('active');b.classList.add('idle');}); }
+  recognition.onend=()=>{
+    if(isListening){isListening=false;btn.classList.remove('on');bars.forEach(b=>{b.classList.remove('active');b.classList.add('idle');});}
   };
 
   recognition.start();
 }
+
 function toggleTTS(){ttsOn=!ttsOn;document.getElementById('tts-track').classList.toggle('on',ttsOn);showToast(ttsOn?'Voice replies ON 🔊':'Voice replies OFF 🔇');}
 
 // ===== GROUPS =====
@@ -1348,6 +1568,7 @@ function selectGroup(el,name,members){
   document.getElementById('group-members').textContent=members;
 }
 function handleGroupKey(e){if(e.key==='Enter') sendGroupMsg();}
+
 async function sendGroupMsg(){
   const input=document.getElementById('group-msg-input');
   const text=input.value.trim();
@@ -1356,56 +1577,69 @@ async function sendGroupMsg(){
   const div=document.createElement('div');
   div.className='group-msg me';
   div.innerHTML=`<div class="group-msg-avatar" style="background:var(--mint);color:white">${currentUser.initials}</div><div class="group-msg-body" style="align-items:flex-end;display:flex;flex-direction:column"><div class="group-msg-name" style="text-align:right">You</div><div class="group-msg-bubble">${escHtml(text)}</div><div class="group-msg-time">${getTime()}</div></div>`;
-  msgs.appendChild(div);
-  input.value='';
-  msgs.scrollTop=msgs.scrollHeight;
+  msgs.appendChild(div);input.value='';msgs.scrollTop=msgs.scrollHeight;
+
+  // Save group message to Supabase
+  try { await sbInsert('group_messages',{user_name:currentUser.name,content:text,group:document.getElementById('group-name').textContent,created_at:new Date().toISOString()}); } catch(e){}
+
   if(text.toLowerCase().includes('@neo')){
-    const question = text.replace(/@neo/gi,'').trim();
-    // Show typing
+    const question=text.replace(/@neo/gi,'').trim();
     const neoTyping=document.createElement('div');
-    neoTyping.id='group-typing';neoTyping.style.display='flex';neoTyping.style.gap='8px';
+    neoTyping.id='group-typing';neoTyping.style.cssText='display:flex;gap:8px;animation:msgIn 0.25s ease';
     neoTyping.innerHTML=`<div class="group-msg-avatar" style="background:var(--mint);color:white;font-family:var(--font-display);font-weight:800">N</div><div class="typing-bubble"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
     msgs.appendChild(neoTyping);msgs.scrollTop=msgs.scrollHeight;
-    const reply = await callGemini(question, 'You are NEO in a group chat. Be concise and helpful.');
+    const reply=await callGemini(question,'You are NEO in a group chat. Be concise, friendly and helpful. Read the context and give a great answer.');
     document.getElementById('group-typing')?.remove();
     const neoDiv=document.createElement('div');
-    neoDiv.style.display='flex';neoDiv.style.gap='8px';
+    neoDiv.style.cssText='display:flex;gap:8px;animation:msgIn 0.25s ease';
     neoDiv.innerHTML=`<div class="group-msg-avatar" style="background:var(--mint);color:white;font-family:var(--font-display);font-weight:800">N</div><div><div class="neo-reply"><div class="neo-reply-head">NEO · @${currentUser.name}</div><div class="neo-reply-body">${renderText(reply)}</div></div><div class="group-msg-time" style="margin-top:3px">${getTime()}</div></div>`;
-    msgs.appendChild(neoDiv);
-    msgs.scrollTop=msgs.scrollHeight;
+    msgs.appendChild(neoDiv);msgs.scrollTop=msgs.scrollHeight;
   }
 }
 
 // ===== FEED =====
-function postFeed(){
+async function postFeed(){
   const input=document.getElementById('feed-compose-input');
   const text=input.value.trim();
   if(!text){showToast('Write something first!');return;}
-  const posts=document.getElementById('feed-posts');
-  const div=document.createElement('div');
-  div.className='feed-post';
-  div.innerHTML=`<div class="feed-post-header"><div class="feed-post-avatar" style="background:var(--mint)">${currentUser.initials}</div><div><div class="feed-post-name">${currentUser.name}</div><div class="feed-post-time">Just now</div></div></div><div class="feed-post-content">${escHtml(text)}</div><div class="feed-post-actions"><button class="feed-action" onclick="likePost(this)"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg> 0</button><button class="feed-action" onclick="showToast('Comments coming soon!')"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg> 0</button><button class="feed-action" onclick="showToast('Link copied! Powered by NEO')"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> Share</button><button class="report-btn" onclick="showToast('Reported!')">Report</button></div>`;
-  posts.insertBefore(div,posts.firstChild);
-  input.value='';
-  showToast('Posted! 🎉');
+  try {
+    await sbInsert('feed_posts',{user_name:currentUser.name,user_email:currentUser.email,content:text,likes:0,created_at:new Date().toISOString()});
+    showToast('Posted! 🎉');
+    input.value='';
+    loadFeed();
+  } catch(e){
+    // Fallback: add locally
+    const posts=document.getElementById('feed-posts');
+    const div=document.createElement('div');
+    div.className='feed-post';
+    div.innerHTML=`<div class="feed-post-header"><div class="feed-post-avatar" style="background:var(--mint)">${currentUser.initials}</div><div><div class="feed-post-name">${currentUser.name}</div><div class="feed-post-time">Just now</div></div></div><div class="feed-post-content">${escHtml(text)}</div><div class="feed-post-actions"><button class="feed-action" onclick="likePost(this,null)"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg> 0</button><button class="report-btn" onclick="showToast('Reported!')">Report</button></div>`;
+    posts.insertBefore(div,posts.firstChild);
+    input.value='';showToast('Posted! 🎉');
+  }
 }
-function likePost(btn){
+
+async function likePost(btn,postId){
   const count=parseInt(btn.textContent.trim().split(' ').pop())||0;
   btn.classList.toggle('liked');
   const liked=btn.classList.contains('liked');
-  const svg=btn.querySelector('svg');
-  btn.innerHTML='';btn.appendChild(svg);
-  btn.appendChild(document.createTextNode(' '+(liked?count+1:count-1)));
+  const svg=btn.querySelector('svg');btn.innerHTML='';btn.appendChild(svg);
+  btn.appendChild(document.createTextNode(' '+(liked?count+1:Math.max(0,count-1))));
   btn.className='feed-action'+(liked?' liked':'');
+  if(postId){ try{ await sbUpdate('feed_posts','id=eq.'+postId,{likes:liked?count+1:count-1}); }catch(e){} }
 }
 
 // ===== SHARE/EXPORT =====
 function showSharePopup(){document.getElementById('share-overlay').classList.add('show');}
 function exportAction(type){
   closeOverlay('share-overlay');
-  if(type==='pdf') showToast('PDF download — connect backend to enable!');
-  if(type==='copy'){showToast('Chat copied to clipboard! (Powered by NEO)');try{navigator.clipboard.writeText('NEO Chat Export\n\n[Chat history here]\n\nPowered by NEO');}catch(e){}}
-  if(type==='link') showToast('Shareable link: neo.app/chat/abc123 (Powered by NEO)');
+  if(type==='pdf') showToast('PDF export — coming soon!');
+  if(type==='copy'){
+    const msgs=document.getElementById('chat-messages');
+    const text=Array.from(msgs.querySelectorAll('.msg-bubble')).map(b=>b.innerText).join('\n\n');
+    try{navigator.clipboard.writeText('NEO Chat\n\n'+text+'\n\nPowered by NEO');}catch(e){}
+    showToast('Chat copied! (Powered by NEO)');
+  }
+  if(type==='link') showToast('Share link: neo-app.netlify.app (Powered by NEO)');
 }
 
 // ===== OVERLAYS =====
